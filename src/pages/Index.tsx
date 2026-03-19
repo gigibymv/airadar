@@ -4,7 +4,6 @@ import { useBookmarks } from "@/hooks/useBookmarks";
 import { useNewsArticles, useCommunityPosts } from "@/hooks/useNewsData";
 import { useUseCases } from "@/hooks/useUseCases";
 import { useFeedRefresh } from "@/hooks/useFeedRefresh";
-import { useCommunitySearch } from "@/hooks/useCommunitySearch";
 import { type NewsCategory } from "@/data/newsData";
 import { AppShellLayout } from "@/features/shell/AppShellLayout";
 import { type Tab } from "@/features/shell/navigation";
@@ -44,16 +43,6 @@ const Index = () => {
     onRefreshed,
     onShowAllNewsReset: () => setShowAllNews(false),
   });
-
-  const {
-    query: communityQuery,
-    setQuery: setCommunityQuery,
-    results: communitySearchResults,
-    isSearching: isCommunitySearching,
-    hasSearched: hasCommunitySearched,
-    search: handleCommunitySearch,
-    reset: handleCommunitySearchReset,
-  } = useCommunitySearch();
 
   const handleTabChange = useCallback((tab: Tab) => {
     setActiveTab(tab);
@@ -101,18 +90,11 @@ const Index = () => {
 
       {activeTab === "community" && (
         <CommunityTab
-          communityQuery={communityQuery}
-          onCommunityQueryChange={setCommunityQuery}
-          onCommunitySearch={handleCommunitySearch}
-          isCommunitySearching={isCommunitySearching}
-          hasCommunitySearched={hasCommunitySearched}
-          communitySearchResults={communitySearchResults}
           communityPosts={communityPosts}
           isRefreshing={isRefreshing}
           onRefreshAll={handleRefreshAll}
           isBookmarked={isBookmarked}
           onToggleBookmark={toggleBookmark}
-          onResetSearch={handleCommunitySearchReset}
         />
       )}
 
