@@ -1285,12 +1285,21 @@ async function insertToday(newsData: any, briefingData: any, fullRefresh: boolea
       }))
       .map((item) => formatGithubCommunityEntry(item));
 
-    let enrichedCommunity = [...validated, ...fallbackMapped].map((item: any) => {
-      const source = ["github", "reddit"].includes(item.source)
-        ? item.source
-        : (item.url?.includes("github.com") ? "github" : "reddit");
-      if (source === "github") return formatGithubCommunityEntry(item);
-      return item;
+    let enrichedCommunity = [...validated, ...fallbackMapped].flatMap((item: any) => {
+      // Derive source from URL — never assume "reddit" as a fallback.
+      const url: string = item.url || "";
+      const source: string =
+        item.source === "github" || url.includes("github.com")
+          ? "github"
+          : item.source === "reddit" || url.includes("reddit.com")
+          ? "reddit"
+          : ""; // unknown — will be filtered out below
+      if (!source) {
+        console.warn(`[community] skipping item with unresolvable source: ${url}`);
+        return [];
+      }
+      if (source === "github") return [formatGithubCommunityEntry({ ...item, source })];
+      return [{ ...item, source }];
     });
 
     // Enforce a minimum GitHub presence in the final batch.
@@ -1317,7 +1326,7 @@ async function insertToday(newsData: any, briefingData: any, fullRefresh: boolea
         .from("community_posts")
         .upsert(
           enrichedCommunity.map((c: any) => ({
-            title: c.title, source: ["github", "reddit"].includes(c.source) ? c.source : (c.url?.includes("github.com") ? "github" : "reddit"), subreddit: c.subreddit || null,
+            title: c.title, source: c.source, subreddit: c.subreddit || null,
             repo: c.repo || null, description: c.description,
             how_it_helps: c.how_it_helps, author: c.author || "Anonymous", url: c.url,
             upvotes: c.upvotes || null, stars: c.stars || null,

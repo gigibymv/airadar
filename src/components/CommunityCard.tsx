@@ -143,10 +143,10 @@ export function CommunityCard({ post, index, isBookmarked, onToggleBookmark }: {
     >
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2">
         <span className="font-semibold text-primary uppercase tracking-[0.1em]">
-          {isGitHub ? "GitHub" : "Reddit"}
+          {post.source === "github" ? "GitHub" : "Reddit"}
         </span>
         <span>·</span>
-        <span>{isGitHub ? post.repo : post.subreddit}</span>
+        <span>{post.source === "github" ? post.repo : post.subreddit}</span>
         <span>·</span>
         <span>{post.timeAgo}</span>
       </div>
