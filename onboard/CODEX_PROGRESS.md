@@ -1,6 +1,6 @@
 # AI Radar — Codex Progress Log
 
-Last updated: 2026-03-18 (America/New_York)
+Last updated: 2026-03-19 (America/New_York)
 
 ## Purpose
 
@@ -601,6 +601,40 @@ Monitor near-match logs (`[dedup] near-match`) from the next live refresh run to
   - `supabase/functions/fetch-daily-news/config.toml` — `verify_jwt = false` so cron can call without auth header
   - Migration pushed, function redeployed
 - **Key rotation**: Gemini API key rotated and pushed to Supabase secrets; `SUPABASE_SERVICE_ROLE_KEY` auto-injected by Supabase (no manual secret needed)
+
+### UI audit + font update (2026-03-19)
+
+- **Font system**: body text switched from Inter Tight to Lexend (`src/index.css`, `tailwind.config.ts` `sans` family); titles/display elements (`font-display`) switched to Segoe UI with system-ui / -apple-system fallback
+- **Mobile responsiveness fixes**:
+  - Settings nickname input: `w-48` → `w-full sm:w-48` (no longer overflows on phones)
+  - Main tab strip: wrapped in relative container with `sm:hidden` gradient fade on right edge as overflow hint
+  - Daily Brief sub-tab strip (`ExecutiveSummary`): added `overflow-x-auto no-scrollbar` (was missing)
+  - Card footers (`UseCaseCard`, `CommunityCard`): added `flex-wrap min-w-0` to left content row for xs screens
+- **Spacing normalisation**:
+  - `CommunitySearch` form: removed `mb-6` (double-stacking with parent `space-y-8` → 56px gap, now 32px)
+  - `CommunityTab` h2: removed redundant `mb-6`
+  - `CategoryFilter`: removed built-in `mb-6`; spacing now owned by `LatestNewsTab`'s new `space-y-6 sm:space-y-8` wrapper
+  - `LatestNewsTab`: added `space-y-6 sm:space-y-8` wrapper, removed stacked `mb-6` from section header
+- **Consistency**: removed misleading `rounded-lg` from LatestNewsTab load-more button
+
+### GitHub deployment (2026-03-19)
+
+- Initialised git repo; added `.env` to `.gitignore` (was missing — secrets protected)
+- Removed Lovable OG image and `@Lovable` Twitter handle from `index.html`; replaced with `/ai-mark.png` and `@MVIntelligence`; removed stale TODO comment
+- Added `public/_redirects` (`/* /index.html 200`) for Cloudflare Pages SPA routing
+- Fixed blank-page deployment issue: correct env var name is `VITE_SUPABASE_PUBLISHABLE_KEY` (not `VITE_SUPABASE_ANON_KEY`)
+- Repo: `https://github.com/gigibymv/airadar.git`
+
+### RLS audit + security hardening (2026-03-19)
+
+- Full RLS audit: all 8 tables correctly configured
+  - Public content tables: public read, service_role write only
+  - `profiles` + `bookmarks`: each user can only access their own rows
+- Closed gap: `supabase/migrations/20260319130000_rls_grants_user_tables.sql`
+  - Explicit `GRANT`/`REVOKE` for `profiles` and `bookmarks` (previously relied on implicit Supabase defaults)
+  - `anon` role explicitly blocked from both user tables
+  - Migration pushed to Supabase project `kkcsjbdeeevzpmxpjwhi`
+- Standing rule: never log customer emails, tokens, or payment data during debugging
 
 ## Next Immediate Task
 
