@@ -1,0 +1,1 @@
+DELETE FROM community_posts WHERE url LIKE '%github.com/LLMSecurity%' OR url LIKE '%github.com/CodeInnovate%' OR url LIKE '%github.com/Awesome-AI-Agents%' OR url ~ 'itnewsafrica\.com/\d{4}/\d{2}/\d+/$'; DELETE FROM use_cases WHERE url ~ 'itnewsafrica\.com/\d{4}/\d{2}/\d+/$';

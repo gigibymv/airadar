@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 8% 92%;
+    --foreground: 0 0% 12%;
+
+    --card: 40 20% 97%;
+    --card-foreground: 0 0% 12%;
+
+    --popover: 40 20% 97%;
+    --popover-foreground: 0 0% 12%;
+
+    --primary: 225 85% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 12% 90%;
+    --secondary-foreground: 0 0% 12%;
+
+    --muted: 40 8% 85%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 225 85% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --takeaway: 8 80% 52%;
+    --takeaway-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 8% 85%;
+    --input: 40 8% 88%;
+    --ring: 225 85% 50%;
+
+    --radius: 0px;
+
+    --sidebar-background: 40 20% 97%;
+    --sidebar-foreground: 0 0% 45%;
+    --sidebar-primary: 0 0% 12%;
+    --sidebar-primary-foreground: 40 20% 97%;
+    --sidebar-accent: 40 12% 93%;
+    --sidebar-accent-foreground: 0 0% 12%;
+    --sidebar-border: 40 8% 85%;
+    --sidebar-ring: 225 85% 50%;
+
+    --card-dark: 0 0% 14%;
+    --card-dark-foreground: 40 10% 94%;
+
+    --card-light: 40 20% 97%;
+    --card-light-foreground: 0 0% 12%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Lexend", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Hide scrollbar for tab strips */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
