@@ -3,9 +3,10 @@ import { type CommunityPost } from "@/data/newsData";
 
 const SUBREDDITS = [
   "artificial",
-  "MachineLearning",
+  "singularity",
   "LocalLLaMA",
-  "ChatGPT",
+  "LLMDevs",
+  "AIAgents",
 ];
 
 function timeAgo(utcSeconds: number): string {
@@ -50,7 +51,13 @@ async function fetchSubreddit(sub: string): Promise<CommunityPost[]> {
         source: "reddit" as const,
         subreddit: `r/${sub}`,
         description,
-        howItHelps: `Stay current on what the r/${sub} community is discussing right now — real practitioners sharing experiences, tools, and insights.`,
+        howItHelps: ({
+          artificial: "Useful for practitioners monitoring broad AI trends, policy discussions, and community sentiment around emerging AI developments.",
+          singularity: "Useful for tracking the pace of AI progress, AGI timelines, and high-signal community reactions to major AI breakthroughs.",
+          LocalLLaMA: "Useful for engineers running local LLMs — covers hardware setups, quantization tips, model comparisons, and open-source deployments.",
+          LLMDevs: "Useful for LLM developers tracking practical implementation patterns, prompting techniques, and tooling discussions from active builders.",
+          AIAgents: "Useful for teams building autonomous AI agents — covers architectures, orchestration frameworks, real-world deployments, and emerging patterns.",
+        } as Record<string, string>)[sub] ?? `Stay current on what the r/${sub} community is discussing right now — real practitioners sharing experiences, tools, and insights.`,
         author: p.author || "Anonymous",
         timeAgo: timeAgo(p.created_utc ?? 0),
         upvotes: p.score ?? 0,
