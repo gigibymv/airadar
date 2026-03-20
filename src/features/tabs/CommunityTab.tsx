@@ -2,6 +2,7 @@ import { type CommunityPost } from "@/data/newsData";
 import { useMemo, useState } from "react";
 import { RefreshButton } from "@/components/RefreshButton";
 import { CommunityCard } from "@/components/CommunityCard";
+import { useRedditPosts } from "@/hooks/useRedditPosts";
 
 interface CommunityTabProps {
   communityPosts: CommunityPost[];
@@ -27,12 +28,24 @@ export function CommunityTab({
 }: CommunityTabProps) {
   const [activeSource, setActiveSource] = useState<"github" | "reddit">("reddit");
 
-  const trendingBySource = useMemo(
-    () => communityPosts.filter((post) => post.source === activeSource),
-    [activeSource, communityPosts]
+  const githubPosts = useMemo(
+    () => communityPosts.filter((post) => post.source === "github"),
+    [communityPosts]
   );
 
+  const { posts: redditPosts, loading: redditLoading, refetch: refetchReddit } = useRedditPosts();
+
+  const activePosts = activeSource === "reddit" ? redditPosts : githubPosts;
   const sourceLabel = activeSource === "reddit" ? "Reddit" : "GitHub";
+  const isLoading = activeSource === "reddit" ? redditLoading : isRefreshing;
+
+  function handleRefresh() {
+    if (activeSource === "reddit") {
+      refetchReddit();
+    } else {
+      onRefreshAll();
+    }
+  }
 
   return (
     <div className="space-y-8 sm:space-y-10">
@@ -76,12 +89,14 @@ export function CommunityTab({
             trending {sourceLabel.toLowerCase()}
           </h3>
           <div className="flex-1 h-px bg-border" />
-          <RefreshButton onClick={onRefreshAll} isFetching={isRefreshing} />
+          <RefreshButton onClick={handleRefresh} isFetching={isLoading} />
         </div>
 
-        {trendingBySource.length > 0 ? (
+        {isLoading ? (
+          <p className="text-[13px] text-muted-foreground italic py-6">Loading {sourceLabel} posts…</p>
+        ) : activePosts.length > 0 ? (
           <div className="space-y-2">
-            {trendingBySource.map((post, i) => (
+            {activePosts.map((post, i) => (
               <CommunityCard
                 key={post.id}
                 post={post}
