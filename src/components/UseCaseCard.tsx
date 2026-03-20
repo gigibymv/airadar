@@ -31,10 +31,6 @@ export function UseCaseCard({ post, index, isBookmarked, onToggleBookmark }: { p
       onClick={() => setExpanded(!expanded)}
     >
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2">
-        <span className="font-semibold text-primary uppercase tracking-[0.1em]">{sourceLabel(post.source)}</span>
-        <span>·</span>
-        <span>{sourceSub(post)}</span>
-        <span>·</span>
         <span>{post.timeAgo}</span>
         <span>·</span>
         <span className="uppercase tracking-[0.08em]">
