@@ -496,7 +496,7 @@ async function fetchGitHubCommunityCandidates(): Promise<CandidateArticle[]> {
     const searchUrl = new URL("https://api.github.com/search/repositories");
     searchUrl.searchParams.set(
       "q",
-      `((ai OR llm OR agent OR generative) in:name,description,readme) pushed:>=${twoWeeksAgo} stars:>=10`
+      `((ai OR llm OR agent OR generative) in:name,description,readme) pushed:>=${twoWeeksAgo} stars:>=100`
     );
     searchUrl.searchParams.set("sort", "updated");
     searchUrl.searchParams.set("order", "desc");
@@ -522,12 +522,21 @@ async function fetchGitHubCommunityCandidates(): Promise<CandidateArticle[]> {
     const payload = await response.json();
     const items = Array.isArray(payload?.items) ? payload.items : [];
 
+    // Detect CJK (Chinese/Japanese/Korean) characters
+    const hasCJK = (text: string) => /[\u3000-\u9fff\uf900-\ufaff\ufe30-\ufe4f\uff00-\uffef]/.test(text);
+
     const candidates: CandidateArticle[] = items
       .filter((repo: any) => typeof repo?.html_url === "string" && typeof repo?.name === "string")
+      .filter((repo: any) => {
+        // Skip repos with CJK in name, description, or topics
+        const desc = repo?.description || "";
+        const name = repo?.name || "";
+        const topicsText = (repo?.topics ?? []).join(" ");
+        return !hasCJK(name) && !hasCJK(desc) && !hasCJK(topicsText);
+      })
       .map((repo: any) => {
         const stars = Number(repo?.stargazers_count || 0);
         const forks = Number(repo?.forks_count || 0);
-        const openIssues = Number(repo?.open_issues_count || 0);
         const language = typeof repo?.language === "string" ? repo.language : "n/a";
         const owner = repo?.owner?.login || "unknown";
         const topics = Array.isArray(repo?.topics) ? repo.topics.filter((t: unknown) => typeof t === "string").slice(0, 4) : [];
@@ -548,7 +557,9 @@ async function fetchGitHubCommunityCandidates(): Promise<CandidateArticle[]> {
           author: owner,
           stars,
         };
-      });
+      })
+      // Sort by stars descending so highest-starred repos are picked first
+      .sort((a, b) => (b.stars ?? 0) - (a.stars ?? 0));
 
     console.log(`GitHub API: fetched ${candidates.length} candidates`);
     return candidates;
@@ -1382,6 +1393,10 @@ async function insertToday(newsData: any, briefingData: any, fullRefresh: boolea
   }
 
   if (newsData.community?.length) {
+    // GitHub posts replace previous ones entirely — always show today's top repos.
+    await supabaseAdmin.from("community_posts").delete().eq("source", "github");
+    console.log("Community: cleared all previous GitHub posts before inserting today's batch");
+
     const deduped = newsData.community.filter((c: any) => !existing.communityUrls.has(c.url));
     const validated = await filterValidUrls(deduped, "Community");
     const validatedGithubCount = validated.filter((c: any) =>
