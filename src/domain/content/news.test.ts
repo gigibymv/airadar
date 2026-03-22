@@ -130,24 +130,7 @@ describe("normalizeCommunityPost", () => {
     expect(result.upvotes).toBeUndefined();
   });
 
-  it("maps Reddit post fields correctly", () => {
-    const result = normalizeCommunityPost(
-      makeRawCommunityPost({
-        source: "reddit",
-        subreddit: "r/MachineLearning",
-        repo: null,
-        upvotes: 450,
-        stars: null,
-      })
-    );
-    expect(result.source).toBe("reddit");
-    expect(result.subreddit).toBe("r/MachineLearning");
-    expect(result.repo).toBeUndefined();
-    expect(result.upvotes).toBe(450);
-    expect(result.stars).toBeUndefined();
-  });
-
-  it('defaults unknown source to "github"', () => {
+  it('normalizes any source to "github"', () => {
     const result = normalizeCommunityPost(makeRawCommunityPost({ source: "twitter" }));
     expect(result.source).toBe("github");
   });

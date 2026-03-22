@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp, MessageSquare, Star, ArrowRight, Bookmark } from "lucide-react";
+import { Star, MessageSquare, ArrowRight, Bookmark } from "lucide-react";
 import { type CommunityPost } from "@/data/newsData";
 
 function cleanText(value: string) {
@@ -47,7 +47,7 @@ function extractGithubWhatItDoes(description: string) {
   return firstUseful || segments[0] || "";
 }
 
-function getGithubDisplayDescription(post: CommunityPost) {
+function getDisplayDescription(post: CommunityPost) {
   const cleaned = stripGithubInlineMeta(post.description);
   if (!cleaned) return post.description;
   if (cleaned.length >= 90) return clip(cleaned, 320);
@@ -59,7 +59,7 @@ function getGithubDisplayDescription(post: CommunityPost) {
   );
 }
 
-function inferGithubPainPoint(text: string) {
+function inferPainPoint(text: string) {
   const normalized = text.toLowerCase();
   if (/\b(rag|retrieval|vector|embedding|knowledge)\b/.test(normalized)) {
     return "Grounds AI responses in internal knowledge instead of generic answers.";
@@ -79,7 +79,7 @@ function inferGithubPainPoint(text: string) {
   return "Provides a faster implementation path than building AI foundations from scratch.";
 }
 
-function isGenericGithubHelp(help: string) {
+function isGenericHelp(help: string) {
   const normalized = cleanText(help).toLowerCase();
   if (!normalized) return true;
   if (normalized.length < 55) return true;
@@ -91,12 +91,12 @@ function isGenericGithubHelp(help: string) {
   );
 }
 
-function getGithubDisplayHelp(post: CommunityPost) {
+function getDisplayHelp(post: CommunityPost) {
   const existing = cleanText(post.howItHelps || "");
-  if (!isGenericGithubHelp(existing)) return clip(existing, 300);
+  if (!isGenericHelp(existing)) return clip(existing, 300);
 
   const description = stripGithubInlineMeta(post.description);
-  const valueLine = inferGithubPainPoint(`${description} ${post.repo || ""}`);
+  const valueLine = inferPainPoint(`${description} ${post.repo || ""}`);
   const repoHint = post.repo
     ? `Start with ${cleanText(post.repo)} and adapt modules to your stack.`
     : "Use it as a reference implementation and adapt to your stack.";
@@ -116,7 +116,7 @@ function looksLikeRepoOnlyTitle(title: string, repo?: string) {
   );
 }
 
-function getGithubDisplayTitle(post: CommunityPost) {
+function getDisplayTitle(post: CommunityPost) {
   const fallbackTitle = cleanText(post.title);
   const repo = cleanText(post.repo || "");
   const whatItDoes = extractGithubWhatItDoes(post.description);
@@ -130,10 +130,6 @@ function getGithubDisplayTitle(post: CommunityPost) {
 
 export function CommunityCard({ post, index, isBookmarked, onToggleBookmark }: { post: CommunityPost; index: number; isBookmarked?: boolean; onToggleBookmark?: () => void }) {
   const [expanded, setExpanded] = useState(true);
-  const isGitHub = post.source === "github";
-  const displayTitle = isGitHub ? getGithubDisplayTitle(post) : post.title;
-  const displayDescription = isGitHub ? getGithubDisplayDescription(post) : post.description;
-  const displayHelp = isGitHub ? getGithubDisplayHelp(post) : post.howItHelps;
 
   return (
     <article
@@ -143,20 +139,20 @@ export function CommunityCard({ post, index, isBookmarked, onToggleBookmark }: {
     >
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2">
         <span className="font-semibold text-primary uppercase tracking-[0.1em]">
-          {post.source === "github" ? "GitHub" : "Reddit"}
+          GitHub
         </span>
         <span>·</span>
-        <span>{post.source === "github" ? post.repo : post.subreddit}</span>
+        <span>{post.repo}</span>
         <span>·</span>
         <span>{post.timeAgo}</span>
       </div>
 
       <h4 className="font-display text-[18px] sm:text-[20px] font-bold leading-[1.2] tracking-tight text-foreground mb-3">
-        {displayTitle}
+        {getDisplayTitle(post)}
       </h4>
 
       <p className="text-[13px] leading-[1.7] text-muted-foreground mb-3">
-        {displayDescription}
+        {getDisplayDescription(post)}
       </p>
 
       {expanded && (
@@ -165,7 +161,7 @@ export function CommunityCard({ post, index, isBookmarked, onToggleBookmark }: {
             How This Helps You
           </p>
           <p className="text-[12px] leading-[1.6] text-foreground/80">
-            {displayHelp}
+            {getDisplayHelp(post)}
           </p>
         </div>
       )}
@@ -174,8 +170,8 @@ export function CommunityCard({ post, index, isBookmarked, onToggleBookmark }: {
         <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap min-w-0">
           <span className="font-semibold text-foreground">{post.author}</span>
           <span className="flex items-center gap-1 font-semibold">
-            {isGitHub ? <Star className="h-3 w-3 text-primary" /> : <ArrowUp className="h-3 w-3 text-primary" />}
-            {isGitHub ? post.stars?.toLocaleString() : post.upvotes?.toLocaleString()}
+            <Star className="h-3 w-3 text-primary" />
+            {post.stars?.toLocaleString()}
           </span>
           <span className="flex items-center gap-1">
             <MessageSquare className="h-3 w-3" />{post.comments}

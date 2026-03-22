@@ -23,7 +23,7 @@ interface NormalizedNewsArticle {
 interface NormalizedCommunityPost {
   id: string;
   title: string;
-  source: "github" | "reddit";
+  source: "github";
   subreddit?: string;
   repo?: string;
   description: string;
@@ -53,8 +53,8 @@ function normalizeNewsCategory(category: string): NewsCategory {
   return "LLMs";
 }
 
-function normalizeCommunitySource(source: string): "github" | "reddit" {
-  return source === "reddit" ? "reddit" : "github";
+function normalizeCommunitySource(_source: string): "github" {
+  return "github";
 }
 
 function normalizeTldrCategory(category: string): TldrItem["category"] {

@@ -164,7 +164,6 @@ interface CandidateArticle {
 }
 
 const MIN_GITHUB_COMMUNITY_PER_RUN = 3;
-const MIN_REDDIT_COMMUNITY_PER_RUN = 3;
 
 const AI_KEYWORDS = /\b(artificial intelligence|AI|machine learning|ML|deep learning|neural network|LLM|GPT|generative ai|NLP|natural language processing|computer vision|transformer|diffusion model|reinforcement learning|chatbot|copilot|foundation model|fine.?tun|AI model|AI startup|AI regulation|AI policy|AI infrastructure|data center|compute|GPU|AI research|AI talent|AI adoption|AI ethics)\b/i;
 
@@ -346,39 +345,6 @@ function formatGithubCommunityEntry(entry: any): any {
     title,
     description: clipText(cleanText(entry.description) || coreDescription, 320),
     how_it_helps: howItHelps,
-  };
-}
-
-function formatRedditCommunityEntry(candidate: CandidateArticle): any {
-  const subreddit = candidate.subreddit || "r/artificial";
-  const title = clipText(cleanText(candidate.title), 140);
-  const selftext = cleanText(candidate.description || "");
-  const description = selftext.length > 80
-    ? clipText(selftext, 320)
-    : clipText(`${title} — community discussion in ${subreddit} covering practical AI/ML insights, developer experiences, and emerging patterns.`, 320);
-
-  const subredditHelpMap: Record<string, string> = {
-    "r/MachineLearning": "Useful for researchers and engineers tracking cutting-edge ML papers, experiments, and technical debates from the ML community.",
-    "r/LocalLLaMA": "Useful for engineers running local LLMs — covers hardware setups, quantization tips, model comparisons, and open-source deployments.",
-    "r/artificial": "Useful for practitioners monitoring broad AI trends, policy discussions, and community sentiment around emerging AI developments.",
-    "r/ChatGPT": "Useful for product teams and developers tracking real-world prompting techniques, use cases, and user experiences with frontier models.",
-  };
-
-  const howItHelps = subredditHelpMap[subreddit] ||
-    `Useful for practitioners following community discussions around AI tools, techniques, and industry developments in ${subreddit}.`;
-
-  return {
-    title,
-    source: "reddit",
-    subreddit,
-    repo: null,
-    description,
-    how_it_helps: howItHelps,
-    author: candidate.author || "Anonymous",
-    url: candidate.url,
-    upvotes: null,
-    stars: null,
-    comments: 0,
   };
 }
 
@@ -569,84 +535,6 @@ async function fetchGitHubCommunityCandidates(): Promise<CandidateArticle[]> {
   }
 }
 
-async function fetchRedditCandidates(): Promise<CandidateArticle[]> {
-  const subreddits = [
-    { path: "r/artificial", label: "r/artificial" },
-    { path: "r/MachineLearning", label: "r/MachineLearning" },
-    { path: "r/LocalLLaMA", label: "r/LocalLLaMA" },
-    { path: "r/ChatGPT", label: "r/ChatGPT" },
-  ];
-
-  const results: CandidateArticle[] = [];
-
-  await Promise.allSettled(
-    subreddits.map(async ({ path, label }) => {
-      try {
-        // Use RSS feeds — less blocked by Reddit than JSON API from cloud IPs
-        const resp = await fetch(`https://www.reddit.com/${path}/hot.rss?limit=10`, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (compatible; AI-Radar/1.0; RSS reader)",
-            Accept: "application/rss+xml, application/xml, text/xml",
-          },
-          signal: AbortSignal.timeout(12000),
-        });
-        if (!resp.ok) {
-          console.warn(`Reddit RSS ${path} failed [${resp.status}]`);
-          return;
-        }
-        const xml = await resp.text();
-
-        // Reddit feeds are Atom XML — parse <entry> blocks
-        const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
-        let match;
-        while ((match = entryRegex.exec(xml)) !== null) {
-          const block = match[1];
-          const titleRaw = block.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] || "";
-          // Atom uses <link href="URL" /> for the permalink
-          const url = block.match(/<link[^>]+href="([^"]+)"/)?.[1]?.replace(/&amp;/g, "&") || "";
-          const contentRaw = block.match(/<content[^>]*>([\s\S]*?)<\/content>/)?.[1] || "";
-          const published = block.match(/<published>(.*?)<\/published>/)?.[1] || "";
-          const authorRaw = block.match(/<name>(.*?)<\/name>/)?.[1] || "Anonymous";
-
-          const title = cleanText(
-            titleRaw.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#\d+;/g, " ")
-          );
-          if (!title || !url || !url.includes("reddit.com/r/")) continue;
-          if (title.toLowerCase().includes("[deleted]") || title.toLowerCase().includes("[removed]")) continue;
-          // Skip AutoModerator stickied threads
-          if (authorRaw.includes("AutoModerator")) continue;
-          if (!isAIRelevant(title, contentRaw)) continue;
-
-          // Decode HTML entities in content and strip tags
-          const descText = cleanText(
-            contentRaw
-              .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"')
-              .replace(/&#\d+;/g, " ").replace(/<[^>]*>/g, " ")
-          );
-          const description = descText.length > 80
-            ? clipText(descText, 400)
-            : `Community discussion in ${label} — ${title}`;
-
-          results.push({
-            title: clipText(title, 140),
-            url,
-            publishedAt: published ? new Date(published).toISOString() : new Date().toISOString(),
-            description,
-            source: { name: label },
-            author: cleanText(authorRaw.replace("/u/", "")),
-            subreddit: label,
-          });
-        }
-      } catch (err) {
-        console.warn(`Reddit RSS fetch failed for ${path}:`, err);
-      }
-    })
-  );
-
-  console.log(`Reddit RSS: fetched ${results.length} candidates`);
-  return results;
-}
-
 async function fetchBraveCandidates(): Promise<CandidateArticle[]> {
   if (!BRAVE_SEARCH_API_KEY) return [];
 
@@ -713,11 +601,10 @@ async function fetchAllArticles(region: BriefingRegion = "africa"): Promise<{ co
   globalUrl.searchParams.set("pageSize", "50");
   globalUrl.searchParams.set("apiKey", NEWS_API_KEY);
 
-  const [globalResponse, africaRSSArticles, githubCandidates, redditCandidates, braveCandidates] = await Promise.all([
+  const [globalResponse, africaRSSArticles, githubCandidates, braveCandidates] = await Promise.all([
     fetch(globalUrl.toString()),
     fetchAfricaRSSArticles(region),
     fetchGitHubCommunityCandidates(),
-    fetchRedditCandidates(),
     fetchBraveCandidates(),
   ]);
 
@@ -750,10 +637,6 @@ async function fetchAllArticles(region: BriefingRegion = "africa"): Promise<{ co
     new Map(githubCandidates.map((a) => [a.url, a])).values()
   ).slice(0, 20);
 
-  const redditDeduped = Array.from(
-    new Map(redditCandidates.map((a) => [a.url, a])).values()
-  ).slice(0, 15);
-
   const braveDeduped = Array.from(
     new Map(braveCandidates.map((a) => [a.url, a])).values()
   ).slice(0, 10);
@@ -774,11 +657,6 @@ async function fetchAllArticles(region: BriefingRegion = "africa"): Promise<{ co
     ...(githubDeduped.length
       ? githubDeduped.map(formatArticle)
       : ["No GitHub candidates fetched for this period."]),
-    "",
-    "## REDDIT COMMUNITY CANDIDATES (from Reddit hot posts — r/artificial, r/MachineLearning, r/LocalLLaMA, r/ChatGPT)",
-    ...(redditDeduped.length
-      ? redditDeduped.map(formatArticle)
-      : ["No Reddit candidates fetched for this period."]),
     "",
     "## WEB DISCOVERY CANDIDATES (from Brave Search)",
     ...(braveDeduped.length
@@ -1024,9 +902,9 @@ Based on ONLY these articles, generate a JSON object (raw JSON only, no markdown
   ],
   "community": [
     {
-      "title": "For GitHub repos: a concise journalistic headline (8-12 words) that synthesizes what the project does and why it matters — do NOT use the repo path or owner/repo format, and do NOT copy the first sentence of the description. For Reddit posts: the original post title.",
-      "source": "github|reddit",
-      "subreddit": "r/SubName or null",
+      "title": "For GitHub repos: a concise journalistic headline (8-12 words) that synthesizes what the project does and why it matters — do NOT use the repo path or owner/repo format, and do NOT copy the first sentence of the description.",
+      "source": "github",
+      "subreddit": null,
       "repo": "owner/repo or null",
       "description": "2-4 sentences: what it does, core components/architecture, and typical implementation pattern",
       "how_it_helps": "2-3 sentences: exactly who should use it, what pain point it solves, and the expected practical outcome",
@@ -1054,7 +932,7 @@ Based on ONLY these articles, generate a JSON object (raw JSON only, no markdown
 
 RULES:
 - Generate 5 news articles from the MOST important stories.
-- Generate 6 community posts: exactly 3 from GITHUB COMMUNITY CANDIDATES (source must be "github") and exactly 3 from REDDIT COMMUNITY CANDIDATES (source must be "reddit"). If fewer than 3 Reddit candidates exist, use what is available and fill the rest with GitHub. Use url_index to reference the source.
+- Generate 6 community posts from GITHUB COMMUNITY CANDIDATES (source must be "github"). Use url_index to reference the source.
 - For GitHub community items: title MUST be a journalist-style headline (8-12 words) summarising what the project does and why it matters — never the repo path, never "owner/repo", never a copy of the first description sentence. description must explain what the tool actually does (architecture, approach, key feature). how_it_helps MUST start with the tool/repo name, name a specific audience (e.g. "ML teams building RAG pipelines", "frontend devs shipping chat UIs"), describe the concrete pain it solves for that audience, and end with one adoption tip. Every how_it_helps must be unique — never reuse phrasing across items.
 - Generate 10 use cases total: aim for 5 "person" + 5 "company" whenever evidence exists.
 - Person use cases must clearly be first-person workflow stories (e.g. "I use AI to...", "my process", "we built this in our small team") and should not read like company PR.
@@ -1425,50 +1303,20 @@ async function insertToday(newsData: any, briefingData: any, fullRefresh: boolea
       .map((item) => formatGithubCommunityEntry(item));
 
     let enrichedCommunity = [...validated, ...fallbackMapped].flatMap((item: any) => {
-      // Derive source from URL — never assume "reddit" as a fallback.
       const url: string = item.url || "";
-      const source: string =
-        item.source === "github" || url.includes("github.com")
-          ? "github"
-          : item.source === "reddit" || url.includes("reddit.com")
-          ? "reddit"
-          : ""; // unknown — will be filtered out below
-      if (!source) {
-        console.warn(`[community] skipping item with unresolvable source: ${url}`);
+      const isGithub = item.source === "github" || url.includes("github.com");
+      if (!isGithub) {
+        console.warn(`[community] skipping non-GitHub item: ${url}`);
         return [];
       }
-      if (source === "github") return [formatGithubCommunityEntry({ ...item, source })];
-      return [{ ...item, source }];
+      return [formatGithubCommunityEntry({ ...item, source: "github" })];
     });
 
     // Enforce a minimum GitHub presence in the final batch.
-    const currentGithub = enrichedCommunity.filter((c: any) =>
-      c.source === "github" || c.url?.includes("github.com")
-    ).length;
-    if (currentGithub < MIN_GITHUB_COMMUNITY_PER_RUN) {
+    if (enrichedCommunity.length < MIN_GITHUB_COMMUNITY_PER_RUN) {
       console.warn(
-        `Community GitHub minimum not met: ${currentGithub}/${MIN_GITHUB_COMMUNITY_PER_RUN}`
+        `Community GitHub minimum not met: ${enrichedCommunity.length}/${MIN_GITHUB_COMMUNITY_PER_RUN}`
       );
-    }
-
-    // Enforce a minimum Reddit presence — fetch directly without Gemini if needed.
-    const currentReddit = enrichedCommunity.filter((c: any) =>
-      c.source === "reddit" || c.url?.includes("reddit.com")
-    ).length;
-    if (currentReddit < MIN_REDDIT_COMMUNITY_PER_RUN) {
-      const needed = MIN_REDDIT_COMMUNITY_PER_RUN - currentReddit;
-      const redditFallbacks = await fetchRedditCandidates();
-      const redditFormatted = redditFallbacks
-        .filter((item) => !existing.communityUrls.has(item.url))
-        .filter((item) => !enrichedCommunity.some((c: any) => c.url === item.url))
-        .slice(0, needed)
-        .map((item) => formatRedditCommunityEntry(item));
-      if (redditFormatted.length > 0) {
-        enrichedCommunity = [...enrichedCommunity, ...redditFormatted];
-        console.log(`Reddit fallback: added ${redditFormatted.length} direct Reddit posts`);
-      } else {
-        console.warn(`Reddit fallback: no candidates available (Reddit fetch may have failed)`);
-      }
     }
 
     // Hard dedupe by URL before insert.
@@ -1511,7 +1359,7 @@ async function insertToday(newsData: any, briefingData: any, fullRefresh: boolea
           validated.map((u: any) => ({
             title: u.title, summary: u.summary,
             tools_used: u.tools_used || [], productivity_gain: u.productivity_gain || "",
-            source: ["reddit", "linkedin", "github"].includes(u.source) ? u.source : "reddit",
+            source: ["reddit", "linkedin", "github"].includes(u.source) ? u.source : "github",
             author: u.author || "Anonymous", url: u.url,
             type: classifyUseCaseType({
               type: u.type,

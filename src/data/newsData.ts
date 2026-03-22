@@ -27,7 +27,7 @@ export function getCategoryColor(category: NewsCategory) {
 export interface CommunityPost {
   id: string;
   title: string;
-  source: "github" | "reddit";
+  source: "github";
   subreddit?: string;
   repo?: string;
   description: string;
