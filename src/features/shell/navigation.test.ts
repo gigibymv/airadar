@@ -5,6 +5,7 @@ describe("navigation invariants", () => {
   it("keeps the expected enabled tab order", () => {
     expect(appTabs.map((item) => item.tab)).toEqual([
       "briefing",
+      "news",
       "community",
       "usecases",
       "saved",

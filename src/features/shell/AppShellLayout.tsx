@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { format } from "date-fns";
 import { Search, Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AppSidebar } from "@/components/AppSidebar";
 import { appNavItems, appTabs, type Tab } from "@/features/shell/navigation";
 
@@ -8,6 +9,7 @@ interface AppShellLayoutProps {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
   displayName: string;
+  isPublic: boolean;
   showGlobalSearch: boolean;
   mobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
@@ -22,6 +24,7 @@ export function AppShellLayout({
   activeTab,
   onTabChange,
   displayName,
+  isPublic,
   showGlobalSearch,
   mobileMenuOpen,
   onToggleMobileMenu,
@@ -33,7 +36,7 @@ export function AppShellLayout({
 }: AppShellLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex">
-      <AppSidebar activeTab={activeTab} onTabChange={onTabChange} />
+      <AppSidebar activeTab={activeTab} onTabChange={onTabChange} isPublic={isPublic} />
 
       <main className="flex-1 overflow-auto min-w-0">
         <div className="border-b border-border px-4 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
@@ -54,10 +57,18 @@ export function AppShellLayout({
               AI Radar
             </p>
             <time className="text-[11px] text-muted-foreground hidden sm:block">
-              Hey {displayName} · {format(new Date(), "EEEE, MMMM d, yyyy")}
+              {isPublic ? "Daily AI intelligence" : `Hey ${displayName}`} · {format(new Date(), "EEEE, MMMM d, yyyy")}
             </time>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {isPublic && (
+              <Link
+                to="/auth"
+                className="border border-foreground px-3 py-2 text-[12px] font-semibold text-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
+                Sign in
+              </Link>
+            )}
             {showGlobalSearch && (
               <>
                 <button
@@ -100,7 +111,7 @@ export function AppShellLayout({
 
         {mobileMenuOpen && (
           <div className="lg:hidden border-b border-border animate-fade-in">
-            {appNavItems.map((item) => (
+            {appNavItems.filter((item) => !isPublic || item.key !== "settings").map((item) => (
               <button
                 key={item.key}
                 onClick={() => item.tab && onTabChange(item.tab)}
@@ -120,7 +131,7 @@ export function AppShellLayout({
         <div className="px-4 sm:px-8 py-6 md:py-8 max-w-6xl">
           <div className="relative mb-8">
             <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto no-scrollbar pb-1 border-b border-border">
-              {appTabs.map((tab) => (
+              {appTabs.filter((tab) => !isPublic || tab.key !== "settings").map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => onTabChange(tab.key)}

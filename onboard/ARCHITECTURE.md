@@ -3,7 +3,7 @@
 ## 1. System overview
 
 AI Radar is a content intelligence application with:
-- a public Daily Brief
+- public editorial content
 - user auth for personal features
 - editorial content surfaces
 - saved/bookmarked content
@@ -20,7 +20,7 @@ The architecture should cleanly separate:
 
 ### A. Access layer
 Responsibilities:
-- public access to the Daily Brief at `/`
+- public access to Daily Brief, Latest News, Community, and Use Cases at `/`
 - Supabase Auth for user identity and user-bound features
 - route/session protection for the full app at `/app`
 - explicit state transitions between the public brief, auth, and app shell
@@ -100,8 +100,8 @@ Purpose:
 ## 4. Access flow
 
 Recommended high-level sequence:
-1. user hits the public Daily Brief at `/`
-2. user can read briefing content without a session
+1. user hits public editorial content at `/`
+2. user can read Daily Brief, Latest News, Community, and Use Cases without a session
 3. a user signs in at `/auth` when they need personal features
 4. authenticated session enters the full shell at `/app`
 5. tab-specific data loads

@@ -10,10 +10,10 @@ interface LatestNewsTabProps {
   showAllNews: boolean;
   onShowAllNews: () => void;
   isRefreshing: boolean;
-  onRefreshAll: () => void;
+  onRefreshAll?: () => void;
   newsArticles: NewsItem[];
   isBookmarked: (id: string) => boolean;
-  onToggleBookmark: (item: {
+  onToggleBookmark?: (item: {
     id: string;
     category: "news";
     title: string;
@@ -62,7 +62,7 @@ export function LatestNewsTab({
           latest
         </h3>
         <div className="flex-1 h-px bg-border" />
-        <RefreshButton onClick={onRefreshAll} isFetching={isRefreshing} />
+        {onRefreshAll && <RefreshButton onClick={onRefreshAll} isFetching={isRefreshing} />}
       </div>
 
       <div className="space-y-2">
@@ -72,15 +72,18 @@ export function LatestNewsTab({
             item={item}
             index={i}
             isBookmarked={isBookmarked(item.id)}
-            onToggleBookmark={() =>
-              onToggleBookmark({
-                id: item.id,
-                category: "news",
-                title: item.title,
-                url: item.url,
-                source: item.source,
-                data: item,
-              })
+            onToggleBookmark={
+              onToggleBookmark
+                ? () =>
+                    onToggleBookmark({
+                      id: item.id,
+                      category: "news",
+                      title: item.title,
+                      url: item.url,
+                      source: item.source,
+                      data: item,
+                    })
+                : undefined
             }
           />
         ))}

@@ -1,4 +1,5 @@
 import { Bookmark } from "lucide-react";
+import { Link } from "react-router-dom";
 import { StoryRow } from "@/components/NewsCard";
 import { UseCaseCard } from "@/components/UseCaseCard";
 import { CommunityCard } from "@/components/CommunityCard";
@@ -10,7 +11,7 @@ import {
   type NewsBookmark,
 } from "@/hooks/useBookmarks";
 
-interface SavedTabProps {
+interface AuthenticatedSavedTabProps {
   getByCategory: <C extends BookmarkCategory>(category: C) => Extract<SavedBookmark, { category: C }>[];
   isLoading: boolean;
   errorMessage: string | null;
@@ -18,6 +19,8 @@ interface SavedTabProps {
   onToggleUseCaseBookmark: (bookmark: SavedBookmark) => void;
   onToggleCommunityBookmark: (bookmark: SavedBookmark) => void;
 }
+
+type SavedTabProps = AuthenticatedSavedTabProps | { requiresSignIn: true };
 
 function isNewsCategory(value: unknown): value is NewsCategory {
   return (
@@ -44,14 +47,42 @@ function toSavedNewsItem(bookmark: NewsBookmark): NewsItem {
   };
 }
 
-export function SavedTab({
-  getByCategory,
-  isLoading,
-  errorMessage,
-  onToggleNewsBookmark,
-  onToggleUseCaseBookmark,
-  onToggleCommunityBookmark,
-}: SavedTabProps) {
+export function SavedTab(props: SavedTabProps) {
+  if (props.requiresSignIn) {
+    return (
+      <div className="space-y-8 sm:space-y-10">
+        <div>
+          <h2 className="font-display text-[28px] sm:text-[36px] font-bold tracking-tight text-foreground leading-[1.1]">
+            Saved items
+          </h2>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Keep the stories and use cases you want to revisit.
+          </p>
+        </div>
+        <div className="text-center py-16 border-t border-border">
+          <Bookmark className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+          <p className="text-[13px] text-muted-foreground mb-5">
+            Sign in to save items and access your personal reading list.
+          </p>
+          <Link
+            to="/auth"
+            className="inline-flex border border-foreground px-4 py-2.5 text-[13px] font-semibold text-foreground transition-colors hover:bg-foreground hover:text-background"
+          >
+            Sign in to save items
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const {
+    getByCategory,
+    isLoading,
+    errorMessage,
+    onToggleNewsBookmark,
+    onToggleUseCaseBookmark,
+    onToggleCommunityBookmark,
+  } = props;
   const news = getByCategory("news");
   const useCases = getByCategory("usecases");
   const community = getByCategory("community");

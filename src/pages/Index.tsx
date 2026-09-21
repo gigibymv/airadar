@@ -15,7 +15,8 @@ import { SavedTab } from "@/features/tabs/SavedTab";
 import { SettingsTab } from "@/features/tabs/SettingsTab";
 
 const Index = () => {
-  const { displayName } = useAuth();
+  const { displayName, user } = useAuth();
+  const hasPersonalAccess = Boolean(user);
   const [activeTab, setActiveTab] = useState<Tab>("briefing");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -55,6 +56,7 @@ const Index = () => {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       displayName={displayName}
+      isPublic={!hasPersonalAccess}
       showGlobalSearch={activeTab === "news"}
       mobileMenuOpen={mobileMenuOpen}
       onToggleMobileMenu={() => setMobileMenuOpen((open) => !open)}
@@ -63,7 +65,7 @@ const Index = () => {
       searchQuery={searchQuery}
       onSearchQueryChange={setSearchQuery}
     >
-      {activeTab === "briefing" && <DailyBriefTab />}
+      {activeTab === "briefing" && <DailyBriefTab showBookmarkControls={hasPersonalAccess} />}
 
       {activeTab === "news" && (
         <LatestNewsTab
@@ -73,10 +75,10 @@ const Index = () => {
           showAllNews={showAllNews}
           onShowAllNews={() => setShowAllNews(true)}
           isRefreshing={isRefreshing}
-          onRefreshAll={handleRefreshAll}
+          onRefreshAll={hasPersonalAccess ? handleRefreshAll : undefined}
           newsArticles={newsArticles}
           isBookmarked={isBookmarked}
-          onToggleBookmark={toggleBookmark}
+          onToggleBookmark={hasPersonalAccess ? toggleBookmark : undefined}
         />
       )}
 
@@ -84,7 +86,7 @@ const Index = () => {
         <UseCasesTab
           useCasePosts={useCasePosts}
           isBookmarked={isBookmarked}
-          onToggleBookmark={toggleBookmark}
+          onToggleBookmark={hasPersonalAccess ? toggleBookmark : undefined}
         />
       )}
 
@@ -92,49 +94,52 @@ const Index = () => {
         <CommunityTab
           communityPosts={communityPosts}
           isRefreshing={isRefreshing}
-          onRefreshAll={handleRefreshAll}
+          onRefreshAll={hasPersonalAccess ? handleRefreshAll : undefined}
           isBookmarked={isBookmarked}
-          onToggleBookmark={toggleBookmark}
+          onToggleBookmark={hasPersonalAccess ? toggleBookmark : undefined}
         />
       )}
 
-      {activeTab === "saved" && (
-        <SavedTab
-          getByCategory={getByCategory}
-          isLoading={bookmarksLoading}
-          errorMessage={bookmarksError}
-          onToggleNewsBookmark={(b) =>
-            toggleBookmark({
-              id: b.id,
-              category: "news",
-              title: b.title,
-              url: b.url,
-              source: b.source,
-              data: b.data,
-            })
-          }
-          onToggleUseCaseBookmark={(b) =>
-            toggleBookmark({
-              id: b.id,
-              category: "usecases",
-              title: b.title,
-              url: b.url,
-              source: b.source,
-              data: b.data,
-            })
-          }
-          onToggleCommunityBookmark={(b) =>
-            toggleBookmark({
-              id: b.id,
-              category: "community",
-              title: b.title,
-              url: b.url,
-              source: b.source,
-              data: b.data,
-            })
-          }
-        />
-      )}
+      {activeTab === "saved" &&
+        (hasPersonalAccess ? (
+          <SavedTab
+            getByCategory={getByCategory}
+            isLoading={bookmarksLoading}
+            errorMessage={bookmarksError}
+            onToggleNewsBookmark={(b) =>
+              toggleBookmark({
+                id: b.id,
+                category: "news",
+                title: b.title,
+                url: b.url,
+                source: b.source,
+                data: b.data,
+              })
+            }
+            onToggleUseCaseBookmark={(b) =>
+              toggleBookmark({
+                id: b.id,
+                category: "usecases",
+                title: b.title,
+                url: b.url,
+                source: b.source,
+                data: b.data,
+              })
+            }
+            onToggleCommunityBookmark={(b) =>
+              toggleBookmark({
+                id: b.id,
+                category: "community",
+                title: b.title,
+                url: b.url,
+                source: b.source,
+                data: b.data,
+              })
+            }
+          />
+        ) : (
+          <SavedTab requiresSignIn />
+        ))}
 
       {activeTab === "settings" && <SettingsTab />}
     </AppShellLayout>

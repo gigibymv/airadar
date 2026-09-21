@@ -7,7 +7,7 @@ Use Codex to audit and improve the AI Radar codebase while preserving product tr
 ## Phase 1 — Repo audit
 
 - [ ] Identify stack, framework, routing model, and deployment assumptions
-- [x] Make the Daily Brief public at `/`; keep `/app`, Saved, and bookmarks authenticated
+- [x] Make editorial content public at `/`; keep `/app`, Saved, bookmarks, and settings authenticated
 - [ ] Identify navigation implementation and confirm all core tabs exist
 - [ ] Identify data-fetching paths for Daily Brief, Latest News, Community, Use Cases, and Saved
 - [ ] Identify whether `fetch-daily-news` already exists and how it is wired

@@ -25,7 +25,7 @@ export interface NavItem {
 
 export const appNavItems: NavItem[] = [
   { key: "briefing", label: "Daily Brief", tab: "briefing", icon: LayoutDashboard, enabled: true },
-  { key: "news", label: "Latest News", tab: "news", icon: Newspaper, enabled: false },
+  { key: "news", label: "Latest News", tab: "news", icon: Newspaper, enabled: true },
   { key: "community", label: "Community", tab: "community", icon: GitBranch, enabled: true },
   { key: "usecases", label: "Use Cases", tab: "usecases", icon: Lightbulb, enabled: true },
   { key: "saved", label: "Saved", tab: "saved", icon: Bookmark, enabled: true },

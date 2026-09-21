@@ -8,7 +8,7 @@ import { UseCaseCard } from "@/components/UseCaseCard";
 interface UseCasesTabProps {
   useCasePosts: UseCasePost[];
   isBookmarked: (id: string) => boolean;
-  onToggleBookmark: (item: {
+  onToggleBookmark?: (item: {
     id: string;
     category: "usecases";
     title: string;
@@ -112,15 +112,18 @@ export function UseCasesTab({
                 post={post}
                 index={i}
                 isBookmarked={isBookmarked(post.id)}
-                onToggleBookmark={() =>
-                  onToggleBookmark({
-                    id: post.id,
-                    category: "usecases",
-                    title: post.title,
-                    url: post.url,
-                    source: post.source,
-                    data: post,
-                  })
+                onToggleBookmark={
+                  onToggleBookmark
+                    ? () =>
+                        onToggleBookmark({
+                          id: post.id,
+                          category: "usecases",
+                          title: post.title,
+                          url: post.url,
+                          source: post.source,
+                          data: post,
+                        })
+                    : undefined
                 }
               />
             ))}

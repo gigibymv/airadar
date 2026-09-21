@@ -6,7 +6,6 @@ import { AppAccessBoundary } from "@/features/access/AppAccessBoundary";
 import { ProtectedAppRoute } from "@/features/access/ProtectedAppRoute";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
-import { PublicDailyBrief } from "./pages/PublicDailyBrief.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -19,7 +18,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<PublicDailyBrief />} />
+            <Route path="/" element={<Index />} />
             <Route
               path="/app"
               element={

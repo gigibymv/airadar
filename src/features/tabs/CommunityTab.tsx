@@ -6,9 +6,9 @@ import { CommunityCard } from "@/components/CommunityCard";
 interface CommunityTabProps {
   communityPosts: CommunityPost[];
   isRefreshing: boolean;
-  onRefreshAll: () => void;
+  onRefreshAll?: () => void;
   isBookmarked: (id: string) => boolean;
-  onToggleBookmark: (item: {
+  onToggleBookmark?: (item: {
     id: string;
     category: "community";
     title: string;
@@ -47,7 +47,7 @@ export function CommunityTab({
             trending github
           </h3>
           <div className="flex-1 h-px bg-border" />
-          <RefreshButton onClick={onRefreshAll} isFetching={isRefreshing} />
+          {onRefreshAll && <RefreshButton onClick={onRefreshAll} isFetching={isRefreshing} />}
         </div>
 
         {isRefreshing ? (
@@ -60,15 +60,18 @@ export function CommunityTab({
                 post={post}
                 index={i}
                 isBookmarked={isBookmarked(post.id)}
-                onToggleBookmark={() =>
-                  onToggleBookmark({
-                    id: post.id,
-                    category: "community",
-                    title: post.title,
-                    url: post.url,
-                    source: post.source,
-                    data: post,
-                  })
+                onToggleBookmark={
+                  onToggleBookmark
+                    ? () =>
+                        onToggleBookmark({
+                          id: post.id,
+                          category: "community",
+                          title: post.title,
+                          url: post.url,
+                          source: post.source,
+                          data: post,
+                        })
+                    : undefined
                 }
               />
             ))}

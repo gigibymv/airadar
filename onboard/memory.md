@@ -4,11 +4,11 @@
 
 This project is **AI Radar**, not a to-do app.
 
-AI Radar is an editorial intelligence product focused on AI news, market signals, use cases, and saved items. Its Daily Brief is publicly readable; personal features remain authenticated.
+AI Radar is an editorial intelligence product focused on AI news, market signals, use cases, and saved items. Its editorial content is publicly readable; personal features remain authenticated.
 
 ## Non-negotiable product truths
 
-- The **Daily Brief at `/` is public**.
+- **Daily Brief, Latest News, Community, and Use Cases at `/` are public**.
 - **Supabase Auth** protects the full app at `/app` and user-bound features such as Saved and bookmarks.
 
 - Primary navigation includes:

@@ -6,9 +6,10 @@ import { appNavItems, type Tab } from "@/features/shell/navigation";
 interface AppSidebarProps {
   activeTab?: Tab;
   onTabChange?: (tab: Tab) => void;
+  isPublic?: boolean;
 }
 
-export function AppSidebar({ activeTab = "briefing", onTabChange }: AppSidebarProps) {
+export function AppSidebar({ activeTab = "briefing", onTabChange, isPublic = false }: AppSidebarProps) {
   const { user, displayName, signOut } = useAuth();
   return (
     <aside className="hidden lg:flex flex-col w-[220px] border-r border-border bg-background shrink-0">
@@ -29,7 +30,7 @@ export function AppSidebar({ activeTab = "briefing", onTabChange }: AppSidebarPr
       </div>
 
       <nav className="flex flex-col py-4 flex-1 px-4">
-        {appNavItems.map((item) => {
+        {appNavItems.filter((item) => !isPublic || item.key !== "settings").map((item) => {
           const isActive = item.tab === activeTab && item.enabled;
           return (
             <button
