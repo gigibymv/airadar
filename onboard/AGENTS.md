@@ -1,6 +1,6 @@
 # AI Radar — Codex Operating Guide
 
-Use this repository to build and refine **AI Radar**, an authenticated editorial intelligence product for tracking AI news, signals, and use cases.
+Use this repository to build and refine **AI Radar**, an editorial intelligence product with a public Daily Brief and authenticated personal features.
 
 This file is the entrypoint for Codex. Keep it short. Treat the documents below as the governing references:
 
@@ -15,7 +15,7 @@ If implementation conflicts with product docs, follow the product docs.
 
 Core invariants:
 - App name: **AI Radar**
-- Access model: **Password Gate first**, then **Supabase Auth**
+- Access model: **Public Daily Brief at `/`**; **Supabase Auth** for the full app and user-bound features at `/app`
 - Navigation: **Daily Brief**, **Latest News**, **Community**, **Use Cases**, **Saved**
 - **Settings** is visible but disabled / not implemented
 - Content grouping must support **by people** and **by companies**
@@ -41,7 +41,7 @@ Codex should:
 
 ## Do not do this
 
-- do not replace the access model with auth-only
+- do not expose user-bound features or saved data on the public Daily Brief
 - do not add Settings flows before core tabs are stable
 - do not collapse editorial distinctions between Daily Brief and Latest News
 - do not mix “people” and “companies” into one ambiguous taxonomy

@@ -4,7 +4,7 @@ import { BriefingCard } from "@/features/briefing/BriefingCard";
 interface ExecutiveBriefingSectionProps {
   briefing: ExecutiveBriefing | null;
   isBookmarked: (id: string) => boolean;
-  onToggleBookmark: (item: {
+  onToggleBookmark?: (item: {
     id: string;
     category: "news";
     title: string;
@@ -39,15 +39,18 @@ export function ExecutiveBriefingSection({
                   item={item}
                   index={i}
                   isBookmarked={isBookmarked(itemId)}
-                  onToggleBookmark={() =>
-                    onToggleBookmark({
-                      id: itemId,
-                      category: "news",
-                      title: item.title,
-                      url: item.source_urls[0] || "#",
-                      source: "Daily Brief",
-                      data: item,
-                    })
+                  onToggleBookmark={
+                    onToggleBookmark
+                      ? () =>
+                          onToggleBookmark({
+                            id: itemId,
+                            category: "news",
+                            title: item.title,
+                            url: item.source_urls[0] || "#",
+                            source: "Daily Brief",
+                            data: item,
+                          })
+                      : undefined
                   }
                 />
               );

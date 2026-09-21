@@ -45,7 +45,7 @@ function TldrCard({ item, isBookmarked, onToggleBookmark }: TldrCardProps) {
   );
 }
 
-export function TldrSection() {
+export function TldrSection({ showBookmarkControls = true }: { showBookmarkControls?: boolean }) {
   const [activeCategory, setActiveCategory] = useState<TldrCategory>("all");
   const { data: tldrItems = [] } = useTldrItems();
   const { isBookmarked, toggleBookmark } = useBookmarks();
@@ -118,15 +118,18 @@ export function TldrSection() {
                 key={item.id}
                 item={item}
                 isBookmarked={isBookmarked(item.id)}
-                onToggleBookmark={() =>
-                  toggleBookmark({
-                    id: item.id,
-                    category: "news",
-                    title: item.title,
-                    url: item.url,
-                    source: "TLDR AI",
-                    data: item,
-                  })
+                onToggleBookmark={
+                  showBookmarkControls
+                    ? () =>
+                        toggleBookmark({
+                          id: item.id,
+                          category: "news",
+                          title: item.title,
+                          url: item.url,
+                          source: "TLDR AI",
+                          data: item,
+                        })
+                    : undefined
                 }
               />
             ))}

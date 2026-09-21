@@ -13,6 +13,6 @@ export function ProtectedAppRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

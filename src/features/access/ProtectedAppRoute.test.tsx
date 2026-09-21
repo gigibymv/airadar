@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import type { User } from "@supabase/supabase-js";
 import { ProtectedAppRoute } from "@/features/access/ProtectedAppRoute";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -12,17 +13,17 @@ const mockedUseAuth = vi.mocked(useAuth);
 
 function renderProtectedRoute() {
   return render(
-    <MemoryRouter initialEntries={["/"]}>
+    <MemoryRouter initialEntries={["/app"]}>
       <Routes>
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedAppRoute>
               <div>App Home</div>
             </ProtectedAppRoute>
           }
         />
-        <Route path="/auth" element={<div>Auth Page</div>} />
+        <Route path="/" element={<div>Public Daily Brief</div>} />
       </Routes>
     </MemoryRouter>
   );
@@ -42,7 +43,7 @@ describe("ProtectedAppRoute", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
-  it("redirects unauthenticated users to auth route", () => {
+  it("redirects unauthenticated users to the public daily brief", () => {
     mockedUseAuth.mockReturnValue({
       user: null,
       session: null,
@@ -52,7 +53,7 @@ describe("ProtectedAppRoute", () => {
     });
 
     renderProtectedRoute();
-    expect(screen.getByText("Auth Page")).toBeInTheDocument();
+    expect(screen.getByText("Public Daily Brief")).toBeInTheDocument();
   });
 
   it("renders protected content for authenticated users", () => {
@@ -63,7 +64,7 @@ describe("ProtectedAppRoute", () => {
         user_metadata: {},
         aud: "authenticated",
         created_at: new Date().toISOString(),
-      } as any,
+    } as User,
       session: null,
       loading: false,
       displayName: "mv",

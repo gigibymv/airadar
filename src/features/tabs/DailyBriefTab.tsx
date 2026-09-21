@@ -1,5 +1,5 @@
 import { ExecutiveSummary } from "@/components/ExecutiveSummary";
 
-export function DailyBriefTab() {
-  return <ExecutiveSummary />;
+export function DailyBriefTab({ showBookmarkControls = true }: { showBookmarkControls?: boolean }) {
+  return <ExecutiveSummary showBookmarkControls={showBookmarkControls} />;
 }

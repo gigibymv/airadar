@@ -16,9 +16,9 @@ Every meaningful change should satisfy all of the following:
 
 ## 3. Auth and access rules
 
-- Password Gate and Supabase Auth are distinct responsibilities
-- do not collapse them into one mechanism
-- protect user-bound features appropriately
+- The Daily Brief at `/` is public; do not introduce a login redirect there
+- Supabase Auth protects `/app` and user-bound features, including Saved and bookmarks
+- keep public editorial reads separate from authenticated writes
 - avoid leaking auth assumptions into presentational components
 
 ## 4. Tab integrity rules

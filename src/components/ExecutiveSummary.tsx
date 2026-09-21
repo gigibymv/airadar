@@ -9,7 +9,11 @@ import { REFRESH_SCHEDULE_LABEL } from "@/config/schedule";
 
 type BriefTab = "briefing" | "tldr" | "africa";
 
-export function ExecutiveSummary() {
+interface ExecutiveSummaryProps {
+  showBookmarkControls?: boolean;
+}
+
+export function ExecutiveSummary({ showBookmarkControls = true }: ExecutiveSummaryProps) {
   const [activeSubTab, setActiveSubTab] = useState<BriefTab>("briefing");
   const { data: briefing } = useExecutiveBriefing();
   const { isBookmarked, toggleBookmark } = useBookmarks();
@@ -46,21 +50,21 @@ export function ExecutiveSummary() {
       </div>
 
       {activeSubTab === "briefing" && (
-        <ExecutiveBriefingSection
-          briefing={briefing}
-          isBookmarked={isBookmarked}
-          onToggleBookmark={toggleBookmark}
-        />
-      )}
+          <ExecutiveBriefingSection
+            briefing={briefing}
+            isBookmarked={isBookmarked}
+            onToggleBookmark={showBookmarkControls ? toggleBookmark : undefined}
+          />
+        )}
 
-      {activeSubTab === "tldr" && <TldrSection />}
+      {activeSubTab === "tldr" && <TldrSection showBookmarkControls={showBookmarkControls} />}
 
       {activeSubTab === "africa" && (
-        <AfricaSection
-          briefing={briefing}
-          isBookmarked={isBookmarked}
-          onToggleBookmark={toggleBookmark}
-        />
+          <AfricaSection
+            briefing={briefing}
+            isBookmarked={isBookmarked}
+            onToggleBookmark={showBookmarkControls ? toggleBookmark : undefined}
+          />
       )}
     </div>
   );
