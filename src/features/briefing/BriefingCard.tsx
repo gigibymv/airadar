@@ -85,7 +85,7 @@ export function BriefingCard({
 
           {item.concept_explained && (
             <div className="border-l-2 border-accent pl-3 py-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground mb-1">
                 Concept Explained
               </p>
               <p className="text-[14px] leading-[1.7] text-foreground/80">
