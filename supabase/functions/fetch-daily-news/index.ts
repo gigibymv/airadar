@@ -1390,15 +1390,25 @@ Deno.serve(async (req) => {
 
     // ── Health Check ──
     if (isHealthCheck) {
-      const { data: lastRuns } = await supabaseAdmin
+      const { data: lastRuns, error: runsError } = await supabaseAdmin
         .from("pipeline_runs")
         .select("*")
         .order("started_at", { ascending: false })
         .limit(5);
 
+      if (runsError) throw new Error("Health check could not read pipeline runs");
+      const tables = ["news_articles", "tldr_items", "community_posts", "use_cases", "executive_briefings"] as const;
+      const freshness = await Promise.all(tables.map(async (table) => {
+        const { data, error } = await supabaseAdmin.from(table)
+          .select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (error) throw new Error(`Health check could not read ${table}`);
+        return [table, data?.created_at ?? null] as const;
+      }));
+
       return new Response(
         JSON.stringify({
           status: "ok",
+          content_freshness: Object.fromEntries(freshness),
           timestamp: new Date().toISOString(),
           last_runs: lastRuns || [],
           secrets_configured: {
