@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.99.1";
 import { normalizeTitle, isSimilarTitle, deduplicateBatch } from "./dedup.ts";
+import { callAI as generateAI } from "./ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -735,86 +736,10 @@ async function fetchTldrFromNewsletter(): Promise<TldrScrapedItem[]> {
 }
 
 // ── Gemini API ────────────────────────────────────────────────────────
-
-function shouldRetryAiStatus(status: number): boolean {
-  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+function callAI(prompt: string): Promise<string> {
+  return generateAI(GEMINI_API_KEY, prompt);
 }
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function callAI(prompt: string): Promise<string> {
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
-
-  const maxAttempts = 4;
-  let lastErrorMessage = "AI call failed after retries";
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    let response: Response;
-    try {
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
-          GEMINI_API_KEY
-        )}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7,
-            },
-          }),
-        }
-      );
-    } catch (error) {
-      const err = error instanceof Error ? error.message : String(error);
-      lastErrorMessage = `AI request error: ${err}`;
-      if (attempt < maxAttempts) {
-        const backoffMs = 1000 * attempt + Math.floor(Math.random() * 400);
-        console.warn(`${lastErrorMessage} | retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
-        await sleep(backoffMs);
-        continue;
-      }
-      throw new Error(lastErrorMessage);
-    }
-
-    if (!response.ok) {
-      const errText = await response.text();
-      const message = `AI call failed [${response.status}]: ${errText}`;
-      lastErrorMessage = message;
-      if (shouldRetryAiStatus(response.status) && attempt < maxAttempts) {
-        const backoffMs = 1000 * attempt + Math.floor(Math.random() * 400);
-        console.warn(`${message} | retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
-        await sleep(backoffMs);
-        continue;
-      }
-      throw new Error(message);
-    }
-
-    const data = await response.json();
-    const content = data?.candidates?.[0]?.content?.parts
-      ?.map((part: { text?: string }) => part?.text || "")
-      .join("")
-      .trim();
-    if (!content) {
-      lastErrorMessage = "No content returned from AI";
-      if (attempt < maxAttempts) {
-        const backoffMs = 1000 * attempt + Math.floor(Math.random() * 400);
-        console.warn(`${lastErrorMessage} | retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
-        await sleep(backoffMs);
-        continue;
-      }
-      throw new Error(lastErrorMessage);
-    }
-    return content;
-  }
-
-  throw new Error(lastErrorMessage);
-}
 
 function parseJSON(content: string): any {
   let jsonStr = content;
