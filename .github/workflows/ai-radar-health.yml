@@ -1,0 +1,27 @@
+name: AI Radar daily health and recovery
+
+on:
+  schedule:
+    - cron: '30 9 * * *'
+      timezone: America/New_York
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-radar-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Test monitor safety rules
+        run: python3 -m unittest discover -s scripts -p 'test_ai_radar_health.py'
+      - name: Check production and retry ingestion only when needed
+        run: python3 scripts/ai_radar_health.py
